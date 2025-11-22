@@ -1,0 +1,5 @@
+.venv
+*.pyc
+logs/*
+db/data/*
+node_modules

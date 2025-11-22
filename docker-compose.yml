@@ -1,0 +1,41 @@
+services:
+  backend:
+    build: ./app
+    container_name: attack-backend
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+      - ./logs:/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - CHROME_BIN=/usr/bin/chromium
+      - CHROMEDRIVER=/usr/bin/chromedriver
+
+  db:
+    image: postgres:14
+    container_name: attack-db
+    restart: unless-stopped
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "attack_modeling"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      - "5432:5432"
+  
+  frontend:
+    build: ./frontend  # папка где лежит package.json и src
+    container_name: attack-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+networks:
+  default:
+    name: attack-net
