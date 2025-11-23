@@ -62,3 +62,11 @@ class User(Base):
     updated_at = Column(dt(), server_default=func.now(), server_onupdate=func.now())
     
     scans = relationship("Scan", back_populates="user")
+    
+    @property
+    def role_enum(self) -> UserRoleEnum:
+        return UserRoleEnum(self.role)
+    
+    @property
+    def status_enum(self) -> UserStatusEnum:
+        return UserStatusEnum(self.status)

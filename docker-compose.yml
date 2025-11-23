@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./app:/app
-      - ./logs:/logs
     ports:
       - "8000:8000"
     depends_on:
