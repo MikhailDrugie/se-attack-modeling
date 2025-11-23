@@ -42,3 +42,7 @@ class Scan(Base):
     
     user = relationship("User", back_populates="scans")
     vulnerabilities = relationship("Vulnerability", back_populates="scan", cascade="all, delete-orphan")
+    
+    @property
+    def status_enum(self) -> ScanStatusEnum:
+        return ScanStatusEnum(self.status)

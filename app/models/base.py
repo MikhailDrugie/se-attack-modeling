@@ -17,5 +17,9 @@ class LabeledEnumMixin:
         raise NotImplementedError
     
     @property
-    def label(self):
+    def label(self) -> str:
         return self.labels(cur_lang.get() or Lang.RU)[self]
+    
+    @property
+    def syslabel(self) -> str:
+        return self.labels(Lang.ENG)[self]
