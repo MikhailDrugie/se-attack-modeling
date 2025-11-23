@@ -1,6 +1,7 @@
 import enum
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from enums import Lang
 from .base import Base, dt, LabeledEnumMixin
 
@@ -52,16 +53,12 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    
-    username = Column(String, unique=True, nullable=False, index=True)
-    
+    username = Column(String(64), unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
-    
     status = Column(Integer, default=UserStatusEnum.ACTIVE, nullable=False)
-    
     role = Column(Integer, default=UserRoleEnum.DEV, nullable=False)
     
     created_at = Column(dt(), server_default=func.now())
-    
     updated_at = Column(dt(), server_default=func.now(), server_onupdate=func.now())
-
+    
+    scans = relationship("Scan", back_populates="user")
