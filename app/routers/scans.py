@@ -62,7 +62,7 @@ async def list_scans(
     """
     result = await db.execute(
         select(Scan)
-        .options(selectinload(Scan.user))
+        .options(selectinload(Scan.user), selectinload(Scan.vulnerabilities))
         .order_by(Scan.created_at.desc())
         .limit(limit)
         .offset(offset)

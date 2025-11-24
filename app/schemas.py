@@ -55,6 +55,7 @@ class ScanListItem(ScanBase):
     status: ScanStatusEnum
     created_at: datetime
     user: UserBrief
+    vulnerabilities_amount: int
     
     class Config:
         from_attributes = True

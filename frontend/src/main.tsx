@@ -1,10 +1,12 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './i18n/config';  // импорт i18n конфига
+import { CssBaseline } from '@mui/material';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <CssBaseline />  {/* MUI сброс стилей */}
     <App />
-  </StrictMode>,
-)
+  </React.StrictMode>
+);
