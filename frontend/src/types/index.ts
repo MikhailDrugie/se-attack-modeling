@@ -88,5 +88,6 @@ export interface Scan {
   created_at: string;
   completed_at?: string;
   user_id: number;
-  vulnerabilities: Vulnerability[];
+  vulnerabilities?: Vulnerability[];
+  vulnerabilities_amount?: number;
 }

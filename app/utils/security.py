@@ -6,7 +6,7 @@ from typing import Optional
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 
-# ============ ПАРОЛИ ============
+# ПАРОЛИ 
 def hash_password(password: str) -> str:
     """Хэширует пароль"""
     pwd_bytes = password.encode('utf-8')
@@ -22,7 +22,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
 
-# ============ JWT ТОКЕНЫ ============
+# JWT ТОКЕНЫ
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
@@ -41,7 +41,7 @@ def decode_access_token(token: str) -> Optional[dict]:
         return None
 
 
-# ============ API КЛЮЧИ ============
+# API КЛЮЧИ
 def generate_api_key() -> str:
     random_part = secrets.token_urlsafe(32)
     return f"picsec_live_{random_part}"

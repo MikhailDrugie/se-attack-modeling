@@ -54,10 +54,7 @@ export const DashboardPage: React.FC = () => {
   const completedScans = scans.filter((s) => s.status === ScanStatus.COMPLETED).length;
   const runningScans = scans.filter((s) => s.status === ScanStatus.RUNNING).length;
   const totalVulnerabilities = scans.reduce((sum, s) => {
-    if (s.vulnerabilities && Array.isArray(s.vulnerabilities)) {
-      return sum + s.vulnerabilities.length;
-    }
-    return sum;
+    return s.vulnerabilities_amount ? sum + s.vulnerabilities_amount : sum;
   }, 0);
 
 

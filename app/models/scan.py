@@ -1,9 +1,11 @@
 import enum
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, select
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from enums import Lang
 from .base import Base, dt, LabeledEnumMixin
+from .vulnerability import Vulnerability
 
 
 class ScanStatusEnum(LabeledEnumMixin, enum.IntEnum):
@@ -46,3 +48,18 @@ class Scan(Base):
     @property
     def status_enum(self) -> ScanStatusEnum:
         return ScanStatusEnum(self.status)
+    
+    @hybrid_property
+    def vulnerabilities_amount(self) -> int:
+        if self.vulnerabilities:
+            return len(self.vulnerabilities)
+        return 0
+    
+    @vulnerabilities_amount.expression
+    def vulnerabilities_amount(cls):
+        return (
+            select(func.count(Vulnerability.id))
+            .where(Vulnerability.scan_id == cls.id)
+            .correlate_except(Vulnerability)
+            .scalar_subquery()
+        )

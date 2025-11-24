@@ -48,7 +48,7 @@ export const ScanDetailsPage: React.FC = () => {
         setScan(scanData);
 
         if (scanData.status === ScanStatus.COMPLETED) {
-          const vulnData = scanData.vulnerabilities;
+          const vulnData = scanData.vulnerabilities || [];
           setVulnerabilities(vulnData);
         }
       } catch (error) {

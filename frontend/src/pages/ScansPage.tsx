@@ -107,10 +107,10 @@ export const ScansPage: React.FC = () => {
       ),
     },
     {
-      field: 'vulnerabilities',
+      field: 'vulnerabilities_amount',
       headerName: t('scans.vulnerabilities'),
       width: 130,
-      renderCell: (params) => params.value.length,
+      renderCell: (params) => params.value || 0,
     },
     {
       field: 'created_at',
