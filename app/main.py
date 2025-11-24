@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Attack Modeling API",
-    version="0.2",
+    version="0.3",
     lifespan=lifespan
 )
 
