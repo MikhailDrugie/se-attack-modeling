@@ -10,11 +10,11 @@ from utils.logging import app_logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ========== STARTUP ===========
+    # STARTUP 
     app_logger.info("[STARTUP] Application starting...")
     app_logger.info(f'[STARTUP] Version: {app.version}')
     yield
-    # ========== SHUTDOWN ==========
+    # SHUTDOWN
     app_logger.info("[SHUTDOWN] Application shutting down...")
     app_logger.info("[SHUTDOWN] Cleanup completed")
 
