@@ -7,55 +7,22 @@ from dataclasses import dataclass
 
 from utils.logging import app_logger
 from core.utils import url_parser
-from .dto import Page
+from .dto import ContentType, FetchResult, Page, Link
+from .spider import Spider
+from .mapper import SiteMap, Mapper
 
 
-class ContentType(IntEnum):
-    HTML = 1
-    JSON = 2
-    STATIC_IMAGE = 3
-    STATIC_FILE = 4
-    UNKNOWN = 5
-
-
-@dataclass
-class FetchResult:
-    url: str
-    status_code: int
-    content_type: ContentType
-    content: str | bytes | None | Literal[1]
-    headers: dict
-    mime_type: str | None 
-    
-    @property
-    def is_html(self) -> bool:
-        return self.content_type == ContentType.HTML
-    
-    @property
-    def is_static(self) -> bool:
-        return self.content_type in [ContentType.STATIC_IMAGE, ContentType.STATIC_FILE]
-    
-    @property
-    def is_client_error(self) -> bool:
-        return 400 <= self.status_code <= 499
-    
-    @property
-    def is_server_error(self) -> bool:
-        return 500 <= self.status_code <= 599
-    
-    @property
-    def is_redirect(self) -> bool:
-        return 300 <= self.status_code <= 399
-
-
-class Scraper:
+class Crawler:
     def __init__(self, base_url: str, max_depth: int = 3, max_concurrent: int = 10):
         self.base_url = base_url
         self.max_depth = max_depth
         self.max_concurrent = max_concurrent
         self.visited_urls: set[str] = set()
+        self.__hashes: dict[str, set[str]] = {}
+        self.__pages: dict[str, Page] = {}
+        self.__fetch_results: dict[str, FetchResult] = {}
         self.__semaphore = asyncio.Semaphore(max_concurrent)
-        
+        self.__spider = Spider(self.base_url)
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -63,6 +30,11 @@ class Scraper:
         }
         self.request_delay = 0.1
         self._last_request_time = 0
+        self.__sitemap: SiteMap | None = None 
+    
+    def set_base_url(self, value: str):
+        self.base_url = value
+        self.__spider = Spider(self.base_url)
     
     @staticmethod
     def __determine_content_type(mime_type: str, url: str) -> ContentType | int:
@@ -120,31 +92,56 @@ class Scraper:
                     )
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 app_logger.error(f"[SCRAPPER] Request error on {url}: {e}")
-                return
+                return None
             except Exception as e:
                 app_logger.error(f"[SCRAPPER] Unexpected error on {url}: {e}")
                 return None
     
-    async def process_url(self, session: aiohttp.ClientSession, url: str, depth: int):
+    async def process_url(self, session: aiohttp.ClientSession, url: str | Link, depth: int):
+        if isinstance(url, Link):
+            url = url.raw
+        
+        url_clean = url.split('#')[0]
         stripped = url_parser.remove_query(url)
         
-        if depth > self.max_depth or stripped in self.visited_urls:
+        if depth > self.max_depth:
             return
         
-        self.visited_urls.add(stripped)
+        if url_clean in self.visited_urls:
+            return
+        self.visited_urls.add(url_clean)
+        
         result = await self.fetch(session, url)
         if not result:
             return
+        if result.content_type != ContentType.HTML:
+            self.__fetch_results[url_clean] = result
+            return
         
-        # TODO: spider
-        page: Page = ...
-        # TODO: start filling data for mapper already?
+        page = self.__spider.parse(result.content, url)
+        
+        _hash = self.__spider.hash_structure(page)
+        if _hash in self.__hashes.get(stripped, set()):
+            # print(f'FOUND SAME STRUCTURE ON {stripped} for {url}')
+            return
+        if stripped not in self.__hashes:
+            self.__hashes[stripped] = set()
+        self.__hashes[stripped].add(_hash)
+        
+        if stripped not in self.visited_urls:
+             self.visited_urls.add(stripped)
+             self.__pages[stripped] = page
+             self.__fetch_results[stripped] = result
+        else:
+            self.visited_urls.add(url_clean)
+            self.__pages[url_clean] = page
+            self.__fetch_results[url_clean] = result
         
         tasks = []
-        for link in page.links:  # TODO: page dataclass (?)
-            full_url = urljoin(stripped, link.url)
-            if urlparse(full_url).netloc == urlparse(self.base_url).netloc:
-                tasks.append(self.process_url(session, full_url, depth + 1))
+        for link in page.links:
+            # full_url = urljoin(stripped, link.url)
+            if urlparse(link.raw).netloc == urlparse(self.base_url).netloc:
+                tasks.append(self.process_url(session, link, depth + 1))
         
         if tasks:
             await asyncio.gather(*tasks)
@@ -152,7 +149,10 @@ class Scraper:
     async def run(self):
         async with aiohttp.ClientSession() as session:
             await self.process_url(session, self.base_url, 0)
+        # TODO: form crawling
         
-        site_map = ...
+        # site_map = ...
+        mapper = Mapper(self.base_url)
+        site_map = mapper.build_map(self.__pages, self.__fetch_results)
         return site_map
-
+        # return self.__pages

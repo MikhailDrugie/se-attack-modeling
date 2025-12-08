@@ -1,6 +1,46 @@
 from dataclasses import dataclass, field
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 from enum import IntEnum
+
+
+class ContentType(IntEnum):
+    HTML = 1
+    JSON = 2
+    STATIC_IMAGE = 3
+    STATIC_FILE = 4
+    UNKNOWN = 5
+    JAVASCRIPT = 6
+    CSS = 7
+
+
+@dataclass
+class FetchResult:
+    url: str
+    status_code: int
+    content_type: ContentType
+    content: str | bytes | None | Literal[1]
+    headers: dict
+    mime_type: str | None 
+    
+    @property
+    def is_html(self) -> bool:
+        return self.content_type == ContentType.HTML
+    
+    @property
+    def is_static(self) -> bool:
+        return self.content_type in [ContentType.STATIC_IMAGE, ContentType.STATIC_FILE]
+    
+    @property
+    def is_client_error(self) -> bool:
+        return 400 <= self.status_code <= 499
+    
+    @property
+    def is_server_error(self) -> bool:
+        return 500 <= self.status_code <= 599
+    
+    @property
+    def is_redirect(self) -> bool:
+        return 300 <= self.status_code <= 399
 
 
 class FormMethods(IntEnum):

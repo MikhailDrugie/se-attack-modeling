@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup, Tag
-from urllib.parse import urljoin, urlparse, parse_qs
+from urllib.parse import urljoin, urlparse
 from typing import List, Dict
+import json
+import hashlib
 
 from utils.logging import app_logger
 from core.utils import url_parser
@@ -11,6 +13,33 @@ class Spider:
     
     def __init__(self, base_url: str):
         self.base_url = base_url
+    
+    def hash_structure(self, page: Page) -> str:
+        """
+        Хешируем ТОЛЬКО структуру:
+        - Количество и типы форм
+        - Количество ссылок (но не сами URL'ы, они могут меняться!)
+        - Наличие определенных элементов
+        """
+        structure = {
+            'forms_count': len(page.forms),
+            'forms_structure': [
+                {
+                    'method': form.method,
+                    'fields_count': len(form.fields),
+                    'field_types': sorted([f.field_type for f in form.fields])
+                }
+                for form in page.forms
+            ],
+            'links_count': len(page.links),
+            'has_title': page.title is not None,
+            'scripts_count': len(page.scripts),
+            'styles_count': len(page.styles)
+        }
+        
+        structure_str = json.dumps(structure, sort_keys=True)
+        return hashlib.md5(structure_str.encode('utf-8')).hexdigest()
+
         
     def parse(self, html: str, current_url: str) -> Page:
         """
@@ -46,23 +75,27 @@ class Spider:
     
     def _extract_links(self, soup: BeautifulSoup, current_url: str) -> List[ExtLink]:
         links = []
-        visited = set()
+        visited = {current_url}
+        
         
         for link in soup.find_all('a', href=True):
             href = link['href']
             
             if href.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
                 continue
+            elif urlparse(urljoin(self.base_url, href)).netloc != urlparse(self.base_url).netloc:
+                continue
             
             parsed = url_parser.full_parse(urljoin(current_url, href))
-            if not parsed.url or parsed.url in visited:
+            if not parsed.url or parsed.clear in visited:
                 continue
 
-            extlink = ExtLink(urljoin(current_url, href), parsed.url, parsed.query_params, href)            
+            extlink = ExtLink(parsed.raw, parsed.url, parsed.query_params, href)            
+            clear = extlink.raw
             if '#' in extlink.raw:
-                extlink.anchor = extlink.raw.split('#', 1)[1]
+                clear, extlink.anchor = extlink.raw.split('#', 1)
             links.append(extlink)
-            visited.add(extlink.url)
+            visited.add(clear)
             
         app_logger.info(f"[SPIDER] Found {len(links)} links on {current_url}")
         return links
@@ -75,7 +108,7 @@ class Spider:
             # Получаем атрибуты формы
             action = form_tag.get('action', '')
             method = form_tag.get('method', 'GET').upper()
-            parsed = url_parser.full_parse(current_url if action else urljoin(current_url, action))
+            parsed = url_parser.full_parse(current_url if not action else urljoin(current_url, action))
             link = Link(parsed.raw, parsed.url, parsed.query_params)
             
             # Извлекаем поля формы

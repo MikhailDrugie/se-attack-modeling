@@ -15,6 +15,7 @@ class CustomParsed:
         self.raw = raw
         self.url = url
         self.query_params = query_params
+        self.clear = raw.split('#')[0]
 
 
 def full_parse(url: str):
