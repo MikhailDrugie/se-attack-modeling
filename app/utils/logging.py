@@ -24,7 +24,7 @@ def setup_logging():
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
     
-    root_logger = logging.getLogger()
+    root_logger = logging.getLogger('attack-modeling')
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
     return root_logger
