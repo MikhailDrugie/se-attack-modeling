@@ -48,7 +48,7 @@ class ScanBase(BaseModel):
     target_url: HttpUrl  # validate through pydantic
 
 class ScanCreate(ScanBase):
-    pass
+    debug: bool = False
 
 class ScanListItem(ScanBase):
     id: int
