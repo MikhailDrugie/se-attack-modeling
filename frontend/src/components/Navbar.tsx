@@ -40,6 +40,10 @@ export const Navbar: React.FC = () => {
             {t('nav.scans')}
           </Button>
 
+          <Button color="inherit" onClick={() => navigate('/cwe')}>
+            {t('nav.cwe')}
+          </Button>
+
           {user?.role === UserRole.ADMIN && (
             <Button color="inherit" onClick={() => navigate('/users')}>
               {t('nav.users')}

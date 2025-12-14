@@ -172,5 +172,6 @@ class SQLiAnalyzer(BaseAnalyzer):
             method=method,
             payload=successful_payload.payload,
             evidence=successful_payload.evidence or "SQL error detected",
-            all_payloads=[successful_payload]
+            all_payloads=[successful_payload],
+            cwe_id='CWE-89'
         )

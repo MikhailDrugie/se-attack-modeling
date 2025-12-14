@@ -4,7 +4,8 @@ import type {
   LoginResponse,
   User,
   Scan,
-  // Vulnerability
+  // Vulnerability,
+  CWE
 } from '../types';
 
 const api = axios.create({
@@ -70,6 +71,20 @@ export const scansAPI = {
   // delete: async (id: number): Promise<void> => {
   //   await api.delete(`/scans/${id}`);
   // },
+
+  // В scansAPI добавь:
+  createSAST: async (file: File): Promise<Scan> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await api.post('/scans/sast', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
 };
 
 // Users API (только для ADMIN)
@@ -94,5 +109,19 @@ export const usersAPI = {
     return response.data;
   }
 };
+
+// CWE API
+export const cweAPI = {
+  getAll: async (): Promise<CWE[]> => {
+    const response = await api.get('/cwe/');
+    return response.data;
+  },
+  
+  getById: async (cweId: string): Promise<CWE> => {
+    const response = await api.get(`/cwe/${cweId}`);
+    return response.data;
+  },
+};
+
 
 export default api;

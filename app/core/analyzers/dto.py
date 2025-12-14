@@ -30,6 +30,8 @@ class VulnerabilityDTO:
     evidence: str = ""              # Кусок response с доказательством
     all_payloads: list[PayloadResult] = field(default_factory=list)
     
+    cwe_id: str = "CWE-UNKNOWN"
+    
     def to_orm_dict(self) -> dict:
         """Маппинг в ORM Vulnerability модель"""
         return {
@@ -37,7 +39,8 @@ class VulnerabilityDTO:
             'description': self.description,
             'type': self.vuln_type,
             'severity': self.severity,
-            'url_path': self.url_path
+            'url_path': self.url_path,
+            'cwe_id': self.cwe_id
         }
 
 @dataclass

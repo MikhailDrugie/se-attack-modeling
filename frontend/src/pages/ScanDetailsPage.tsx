@@ -17,10 +17,10 @@ import {
   Paper,
   Button,
 } from '@mui/material';
-import { ArrowBack as BackIcon } from '@mui/icons-material';
+import { ArrowBack as BackIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
-import { scansAPI } from '../services/api';
+import api, { scansAPI } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import {
   ScanStatus,
@@ -104,6 +104,90 @@ export const ScanDetailsPage: React.FC = () => {
           Назад к списку
         </Button>
 
+        {scan.status === ScanStatus.COMPLETED && (
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={async () => {
+                try {
+                  const response = await api.get(`/scans/${scan.id}/report/html`);
+                  const htmlContent = response.data;
+                  
+                  // Открываем в новом окне
+                  const newWindow = window.open();
+                  newWindow!.document.write(htmlContent);
+                  newWindow!.document.close();
+                } catch (error) {
+                  alert('Failed to generate report');
+                }
+              }}
+            >
+              Просмотр HTML
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              onClick={async () => {
+                try {
+                  const response = await api.get(`/scans/${scan.id}/report/html/download`, {
+                    responseType: 'blob'
+                  });
+                  
+                  // Создаём blob URL
+                  const blob = new Blob([response.data], { type: 'text/html' });
+                  const url = window.URL.createObjectURL(blob);
+                  
+                  // Скачиваем
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `scan_report_${scan.id}.html`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  
+                  // Чистим
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  alert('Failed to download report');
+                }
+              }}
+            >
+              Скачать HTML
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              onClick={async () => {
+                try {
+                  const response = await api.get(`/scans/${scan.id}/report/pdf`, {
+                    responseType: 'blob'
+                  });
+                  // Создаём blob URL
+                  const blob = new Blob([response.data], { type: 'application/pdf' });
+                  const url = window.URL.createObjectURL(blob);
+                  // Скачиваем
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `scan_report_${scan.id}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  console.error('Failed to download PDF report:', error);
+                  alert('Failed to download PDF report');
+                }
+              }}
+            >
+              Скачать PDF
+            </Button>
+
+          </>
+        )}
+
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
@@ -152,6 +236,7 @@ export const ScanDetailsPage: React.FC = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>{t('vulnerabilities.severity')}</TableCell>
+                      <TableCell>CWE</TableCell>
                       <TableCell>{t('vulnerabilities.name')}</TableCell>
                       <TableCell>{t('vulnerabilities.description')}</TableCell>
                       <TableCell>{t('vulnerabilities.affectedUrl')}</TableCell>
@@ -167,6 +252,21 @@ export const ScanDetailsPage: React.FC = () => {
                             color={SeverityColors[vuln.severity]}
                             size="small"
                           />
+                        </TableCell>
+                         <TableCell>
+                          {vuln.cwe_id && vuln.cwe_id !== 'CWE-UNKNOWN' ? (
+                            <Chip
+                              label={vuln.cwe_id}
+                              variant="outlined"
+                              size="small"
+                              onClick={() => {
+                                window.open(`https://cwe.mitre.org/data/definitions/${vuln.cwe_id!.replace('CWE-', '')}.html`, '_blank')
+                              }}
+                              sx={{ cursor: 'pointer' }}
+                            />
+                          ) : (
+                            '-'
+                          )}
                         </TableCell>
                         <TableCell>{vuln.name}</TableCell>
                         <TableCell>{vuln.description || '-'}</TableCell>

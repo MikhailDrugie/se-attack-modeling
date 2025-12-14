@@ -70,6 +70,17 @@ export interface LoginResponse {
   access_token: string;
 }
 
+export interface CWE {
+  id: string;
+  name: string;
+  description: string;
+  extended_description?: string;
+  severity: string;
+  remediation: string;
+  references?: string[];
+  owasp_mapping?: string[];
+}
+
 export interface Vulnerability { // TODO: нет type (их на данный момент в бекенде 8, тоже хранятся в числах)
   id: number;
   scan_id: number;
@@ -78,6 +89,8 @@ export interface Vulnerability { // TODO: нет type (их на данный м
   url_path: string;
   description?: string;
 //   evidence?: string; // TODO: evidence у нас пока нет
+  cwe_id?: string;
+  cwe?: CWE;
 }
 
 export interface Scan {

@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config import cur_lang
 from enums import Lang
-from routers import auth, users, scans
+from routers import auth, users, scans, cwe
 from utils.logging import app_logger
 
 
@@ -48,6 +48,7 @@ async def set_lang_middleware(request: Request, call_next):
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(scans.router)
+app.include_router(cwe.router)
 
 @app.get("/")
 def read_root():

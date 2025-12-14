@@ -12,6 +12,8 @@ import {
   // CircularProgress,
   Chip,
   IconButton,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef } from '@mui/x-data-grid';
@@ -30,6 +32,8 @@ export const ScansPage: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [targetUrl, setTargetUrl] = useState('');
   const [creating, setCreating] = useState(false);
+  const [isSAST, setIsSAST] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -51,18 +55,29 @@ export const ScansPage: React.FC = () => {
   }, []);
 
   const handleCreateScan = async () => {
-    if (!targetUrl) return;
-    
     setCreating(true);
+    
     try {
-      await scansAPI.create(targetUrl/*, 'full'*/); // TODO: scan_type backend
+      if (isSAST) {
+        if (!selectedFile) {
+          alert('Выберите файл для SAST анализа');
+          return;
+        }
+        await scansAPI.createSAST(selectedFile);
+      } else {
+        if (!targetUrl) return;
+        await scansAPI.create(targetUrl);
+      }
+      
       setOpenDialog(false);
       setTargetUrl('');
+      setSelectedFile(null);
+      setIsSAST(false);
       loadScans();
     } catch (error) {
       console.error('Failed to create scan:', error);
     } finally {
-      setCreating(false);
+      setCreating(false);  // <-- всегда выключаем loading
     }
   };
 
@@ -170,18 +185,69 @@ export const ScansPage: React.FC = () => {
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>{t('scans.newScan')}</DialogTitle>
           <DialogContent>
+          {/* Чекбокс для выбора типа скана */}
+          <Box sx={{ mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isSAST}
+                  onChange={(e) => {
+                    setIsSAST(e.target.checked);
+                    setTargetUrl('');
+                    setSelectedFile(null);
+                  }}
+                />
+              }
+              label="Static Application Security Testing (SAST)"
+            />
+          </Box>
+
+          {/* Если SAST - показываем file input */}
+          {isSAST ? (
+            <Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Upload source code archive (.zip, .tar.gz)
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+              >
+                {selectedFile ? selectedFile.name : 'Choose File'}
+                <input
+                  type="file"
+                  hidden
+                  accept=".zip,.tar.gz,.tar"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+              </Button>
+              {selectedFile && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Size: {(selectedFile.size / 1024).toFixed(2)} KB
+                </Typography>
+              )}
+            </Box>
+          ) : (
             <TextField
+              autoFocus
+              margin="dense"
               label={t('scans.targetUrl')}
+              type="url"
               fullWidth
-              margin="normal"
+              variant="outlined"
               value={targetUrl}
               onChange={(e) => setTargetUrl(e.target.value)}
               placeholder="https://example.com"
             />
-          </DialogContent>
+          )}
+        </DialogContent>
+
           <DialogActions>
             <Button onClick={() => setOpenDialog(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleCreateScan} disabled={creating || !targetUrl} variant="contained">
+            <Button
+              onClick={handleCreateScan}
+              disabled={creating || (isSAST ? !selectedFile : !targetUrl)}
+            >
               {creating ? t('common.loading') : t('scans.startScan')}
             </Button>
           </DialogActions>

@@ -6,3 +6,4 @@ db/data/*
 node_modules
 test.*
 .qodo
+app/uploads/*
