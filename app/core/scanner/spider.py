@@ -14,13 +14,7 @@ class Spider:
     def __init__(self, base_url: str):
         self.base_url = base_url
     
-    def hash_structure(self, page: Page) -> str:
-        """
-        Хешируем ТОЛЬКО структуру:
-        - Количество и типы форм
-        - Количество ссылок (но не сами URL'ы, они могут меняться!)
-        - Наличие определенных элементов
-        """
+    def hash_structure(self, page: Page) -> str:  
         structure = {
             'forms_count': len(page.forms),
             'forms_structure': [
@@ -42,16 +36,6 @@ class Spider:
 
         
     def parse(self, html: str, current_url: str) -> Page:
-        """
-        Парсит HTML и возвращает структурированные данные
-        
-        Args:
-            html: HTML контент страницы
-            current_url: URL текущей страницы
-        
-        Returns:
-            PageData с извлеченными данными
-        """
         soup = BeautifulSoup(html, 'lxml')  # lxml быстрее чем html.parser
         
         parsed = url_parser.full_parse(current_url)
@@ -69,7 +53,6 @@ class Spider:
         return page_data
     
     def _extract_title(self, soup: BeautifulSoup) -> Optional[str]:
-        """Извлекает title страницы"""
         title_tag = soup.find('title')
         return title_tag.get_text(strip=True) if title_tag else None
     
@@ -101,7 +84,6 @@ class Spider:
         return links
     
     def _extract_forms(self, soup: BeautifulSoup, current_url: str) -> List[Form]:
-        """Извлекает все формы со страницы"""
         forms = []
         
         for form_tag in soup.find_all('form'):
@@ -128,13 +110,12 @@ class Spider:
         return forms
     
     def _extract_form_fields(self, form_tag: Tag) -> List[FormField]:
-        """Извлекает поля из формы"""
         fields = []
         
         # Input fields
         for input_tag in form_tag.find_all('input'):
             name = input_tag.get('name')
-            if not name:  # Пропускаем поля без name
+            if not name:
                 continue
             
             field = FormField(
@@ -182,7 +163,6 @@ class Spider:
         return fields
     
     def _extract_meta_tags(self, soup: BeautifulSoup) -> Dict[str, str]:
-        """Извлекает meta теги"""
         meta_tags = {}
         
         for meta in soup.find_all('meta'):
@@ -195,7 +175,7 @@ class Spider:
         return meta_tags
     
     def _extract_scripts(self, soup: BeautifulSoup, current_url: str) -> List[str]:
-        """Извлекает ссылки на JS файлы"""
+        """JS файлы"""
         scripts = []
         
         for script in soup.find_all('script', src=True):
@@ -205,7 +185,7 @@ class Spider:
         return scripts
     
     def _extract_stylesheets(self, soup: BeautifulSoup, current_url: str) -> List[str]:
-        """Извлекает ссылки на CSS файлы"""
+        """CSS файлы"""
         stylesheets = []
         
         for link in soup.find_all('link', rel='stylesheet', href=True):
