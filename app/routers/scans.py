@@ -9,7 +9,8 @@ from schemas import ScanCreate, ScanResponse, ScanListItem
 from dependencies import require_analyst_or_higher, require_dev_or_higher
 from models.user import User
 from models.scan import Scan, ScanStatusEnum
-from services.scanner import run_fake_scan
+from services.fake_scanner import run_fake_scan
+from services.scanner import ScannerService
 from utils.logging import app_logger
 
 
@@ -43,7 +44,7 @@ async def create_scan(
         f"[API] User #{new_scan.user_id} created scan #{new_scan.id} "
         f"for target: {new_scan.target_url}"
     )
-    background_tasks.add_task(run_fake_scan, new_scan.id)
+    background_tasks.add_task(run_fake_scan if scan_data.debug else ScannerService.run_scan, new_scan.id)
     return new_scan
 
 

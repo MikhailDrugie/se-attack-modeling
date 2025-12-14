@@ -4,3 +4,5 @@ logs/*
 app/logs/*
 db/data/*
 node_modules
+test.*
+.qodo
