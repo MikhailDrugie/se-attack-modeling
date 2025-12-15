@@ -1,6 +1,4 @@
 from sqlalchemy import Column, String, Text, JSON
-from sqlalchemy.sql import func, select
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -18,5 +16,4 @@ class CWE(Base):
     references = Column(JSON)  # ["url1", "url2"]
     owasp_mapping = Column(JSON, nullable=True)  # ["A03:2021"]
     
-    # Связь с уязвимостями
     vulnerabilities = relationship("Vulnerability", back_populates="cwe")

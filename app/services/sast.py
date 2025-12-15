@@ -34,15 +34,12 @@ class SASTService:
             app_logger.info(f"[SAST #{scan_id}] Starting SAST analysis for {archive_path}")
             
             try:
-                # Обновляем статус
                 scan.status = ScanStatusEnum.RUNNING
                 await db.commit()
                 
-                # Запускаем SAST анализ (синхронный!)
                 analyzer = SASTAnalyzer(archive_path)
                 sast_result = analyzer.analyze()
                 
-                # Сохраняем уязвимости в БД
                 for vuln_dto in sast_result.vulnerabilities:
                     vulnerability = Vulnerability(
                         scan_id=scan_id,
@@ -57,7 +54,6 @@ class SASTService:
                 
                 await db.commit()
                 
-                # Обновляем статус на COMPLETED
                 scan.status = ScanStatusEnum.COMPLETED
                 scan.completed_at = datetime.now(timezone.utc)
                 await db.commit()
@@ -68,7 +64,6 @@ class SASTService:
                     f"in {sast_result.tested_endpoints} files"
                 )
                 
-                # Удаляем архив после анализа
                 try:
                     os.remove(archive_path)
                     app_logger.info(f"[SAST #{scan_id}] Removed archive {archive_path}")
@@ -78,7 +73,6 @@ class SASTService:
             except Exception as e:
                 app_logger.error(f"[SAST #{scan_id}] Analysis failed: {str(e)}")
                 
-                # Обновляем статус на FAILED
                 scan.status = ScanStatusEnum.FAILED
                 await db.commit()
                 

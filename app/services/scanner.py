@@ -38,7 +38,6 @@ class ScannerService:
             )
             
             try:
-                # Создаем и запускаем реальный Engine
                 engine = ScanEngine(
                     db_session=db,
                     scan_id=scan_id,
@@ -49,7 +48,6 @@ class ScannerService:
                 
                 await engine.run()
                 
-                # Получаем и логируем сводку
                 summary = engine.get_summary()
                 app_logger.info(
                     f"[SCAN #{scan_id}] Scan completed successfully. "
@@ -59,7 +57,6 @@ class ScannerService:
             except Exception as e:
                 app_logger.error(f"[SCAN #{scan_id}] Scan failed: {str(e)}")
                 
-                # Обновляем статус на FAILED если еще не обновлен
                 result = await db.execute(select(Scan).where(Scan.id == scan_id))
                 scan = result.scalar_one_or_none()
                 if scan and scan.status != ScanStatusEnum.FAILED:

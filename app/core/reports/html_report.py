@@ -17,20 +17,9 @@ class HTMLReportGenerator:
         self.lang = lang
     
     def generate(self, scan: Scan, vulnerabilities: List[Vulnerability]) -> str:
-        """
-        Генерирует HTML отчёт
-        
-        Args:
-            scan: Объект Scan из БД
-            vulnerabilities: Список Vulnerability из БД
-            
-        Returns:
-            str: HTML строка
-        """
         suffix = 'eng' if self.lang == Lang.ENG else 'ru'
         template = self.env.get_template(f"report.{suffix}.html")
         
-        # Маппинг severity → текст
         severity_map = {
             SeverityEnum.CRITICAL: "critical",
             SeverityEnum.HIGH: "high",
@@ -38,7 +27,6 @@ class HTMLReportGenerator:
             SeverityEnum.LOW: "low",
         }
         
-        # Маппинг типов уязвимостей
         vuln_type_map = {
             VulnerabilityTypesEnum.XSS: "XSS",
             VulnerabilityTypesEnum.SQL_INJECT: "SQL Injection",
@@ -48,12 +36,10 @@ class HTMLReportGenerator:
             VulnerabilityTypesEnum.SAST: "SAST",
         }
         
-        # Подсчёт по severity
         severity_counts = {}
         for vuln in vulnerabilities:
             severity_counts[vuln.severity] = severity_counts.get(vuln.severity, 0) + 1
         
-        # Статус скана
         scan_status_map = {
             ScanStatusEnum.PENDING: "Pending",
             ScanStatusEnum.RUNNING: "Running",

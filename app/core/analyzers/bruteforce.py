@@ -194,7 +194,6 @@ class BruteforceAnalyzer(BaseAnalyzer):
         return False
     
     async def analyze(self) -> AnalyzerResult:
-        """Главный метод анализа"""
         import time
         start_time = time.time()
         

@@ -12,7 +12,6 @@ ALLOWED_ATTRS = {
 }
 
 def markdown_to_safe_html(md_text: str) -> str:
-    """Конвертит markdown в безопасный HTML"""
     html = markdown.markdown(
         md_text,
         extensions=['extra', 'nl2br', 'sane_lists']

@@ -133,7 +133,6 @@ async def create_sast_scan(
     
     - **file**: ZIP или TAR.GZ архив с исходным кодом
     """
-    # Проверяем формат файла
     if not (file.filename.endswith('.zip') or file.filename.endswith('.tar.gz') or file.filename.endswith('.tar')):
         raise HTTPException(
             status_code=400, 
@@ -154,7 +153,6 @@ async def create_sast_scan(
     
     app_logger.info(f"[API] Uploaded SAST archive: {file.filename} -> {file_path} ({len(content)} bytes)")
     
-    # Создаём Scan в БД
     new_scan = Scan(
         target_url=f"http://sast.local/{file.filename}",
         status=ScanStatusEnum.PENDING,
@@ -170,7 +168,6 @@ async def create_sast_scan(
         f"for file: {file.filename}"
     )
     
-    # Запускаем SAST в фоне
     background_tasks.add_task(SASTService.run_sast_scan, new_scan.id, file_path)
     
     return new_scan
@@ -183,7 +180,6 @@ async def get_scan_report_html(
     current_user: User = Depends(require_dev_or_higher)
 ):
     """Генерирует HTML отчёт для скана"""
-    # Получаем скан с уязвимостями
     result = await db.execute(
         select(Scan)
         .options(selectinload(Scan.vulnerabilities))
@@ -236,10 +232,8 @@ async def download_scan_report_html(
     temp_file.write(html)
     temp_file.close()
     
-    # Формируем имя файла
     filename = f"scan_report_{scan_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
     
-    # Отдаём файл
     return FileResponse(
         path=temp_file.name,
         filename=filename,
@@ -255,7 +249,6 @@ async def get_scan_report_pdf(
     current_user: User = Depends(require_dev_or_higher)
 ):
     """Генерирует и скачивает PDF отчёт для скана"""
-    # Получаем скан с уязвимостями
     result = await db.execute(
         select(Scan)
         .options(selectinload(Scan.vulnerabilities))
@@ -270,11 +263,9 @@ async def get_scan_report_pdf(
         if not vuln.description:
             continue
         vuln.description = markdown_to_safe_html(vuln.description)
-    # Генерируем PDF
     generator = PDFReportGenerator(cur_lang.get())
     pdf_bytes = generator.generate(scan, scan.vulnerabilities)
     
-    # Формируем имя файла
     filename = f"scan_report_{scan_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
     return Response(

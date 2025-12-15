@@ -17,11 +17,6 @@ class PDFReportGenerator:
     def generate(self, scan: Scan, vulnerabilities: List[Vulnerability]) -> bytes:
         """
         Генерирует PDF отчёт из HTML
-        
-        Args:
-            scan: Объект Scan
-            vulnerabilities: Список Vulnerability
-            
         Returns:
             bytes: PDF контент
         """
