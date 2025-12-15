@@ -21,6 +21,7 @@ from services import ScannerService, SASTService
 from utils.logging import app_logger
 from utils.markdown_helper import markdown_to_safe_html
 from core.reports import HTMLReportGenerator, PDFReportGenerator
+from config import cur_lang
 
 
 router = APIRouter(
@@ -198,7 +199,7 @@ async def get_scan_report_html(
             continue
         vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем отчёт
-    generator = HTMLReportGenerator()
+    generator = HTMLReportGenerator(cur_lang.get())
     html = generator.generate(scan, scan.vulnerabilities)
     
     return HTMLResponse(content=html)
@@ -227,7 +228,7 @@ async def download_scan_report_html(
             continue
         vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем HTML
-    generator = HTMLReportGenerator()
+    generator = HTMLReportGenerator(cur_lang.get())
     html = generator.generate(scan, scan.vulnerabilities)
     
     # Сохраняем во временный файл
@@ -270,7 +271,7 @@ async def get_scan_report_pdf(
             continue
         vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем PDF
-    generator = PDFReportGenerator()
+    generator = PDFReportGenerator(cur_lang.get())
     pdf_bytes = generator.generate(scan, scan.vulnerabilities)
     
     # Формируем имя файла

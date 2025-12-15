@@ -4,15 +4,17 @@ from datetime import datetime
 from typing import List
 from models.scan import Scan, ScanStatusEnum
 from models.vulnerability import Vulnerability, VulnerabilityTypesEnum, SeverityEnum
+from enums import Lang
 
 
 class HTMLReportGenerator:
     """Генератор HTML отчётов"""
     
-    def __init__(self):
+    def __init__(self, lang: Lang = Lang.RU):
         # Путь к шаблонам
         template_dir = Path(__file__).parent / "templates"
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.lang = lang
     
     def generate(self, scan: Scan, vulnerabilities: List[Vulnerability]) -> str:
         """
@@ -25,7 +27,8 @@ class HTMLReportGenerator:
         Returns:
             str: HTML строка
         """
-        template = self.env.get_template("report.html")
+        suffix = 'eng' if self.lang == Lang.ENG else 'ru'
+        template = self.env.get_template(f"report.{suffix}.html")
         
         # Маппинг severity → текст
         severity_map = {

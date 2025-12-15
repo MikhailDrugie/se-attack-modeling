@@ -4,13 +4,15 @@ from typing import List
 from models.scan import Scan
 from models.vulnerability import Vulnerability
 from .html_report import HTMLReportGenerator
+from enums import Lang
 
 
 class PDFReportGenerator:
     """Генератор PDF отчётов"""
     
-    def __init__(self):
-        self.html_generator = HTMLReportGenerator()
+    def __init__(self, lang: Lang = Lang.RU):
+        self.lang = lang
+        self.html_generator = HTMLReportGenerator(self.lang)
     
     def generate(self, scan: Scan, vulnerabilities: List[Vulnerability]) -> bytes:
         """
