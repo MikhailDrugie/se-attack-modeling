@@ -31,14 +31,31 @@ class UserBrief(UserBase):
     class Config:
         from_attributes = True
 
+# --- CWE ---
+class CWEResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    extended_description: Optional[str]
+    severity: str
+    remediation: str
+    references: Optional[List[str]]
+    owasp_mapping: Optional[List[str]]
+    
+    class Config:
+        from_attributes = True
+
 # --- Vulnerability Schemas ---
 class VulnerabilitySchema(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    # description_html: Optional[str] = None
     severity: SeverityEnum
     url_path: str
     type: VulnerabilityTypesEnum
+    cwe_id: Optional[str]
+    cwe: Optional[CWEResponse] = None 
 
     class Config:
         from_attributes = True

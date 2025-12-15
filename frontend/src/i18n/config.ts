@@ -24,6 +24,7 @@ const translationsRU = {
     dashboard: 'Панель управления',
     scans: 'Сканирования',
     users: 'Пользователи',
+    cwe: 'CWE'
   },
   auth: {
     loginTitle: 'Система анализа защищённости',
@@ -93,6 +94,7 @@ const translationsEN = {
     dashboard: 'Dashboard',
     scans: 'Scans',
     users: 'Users',
+    cwe: 'CWE'
   },
   auth: {
     loginTitle: 'Web Security Analysis System',

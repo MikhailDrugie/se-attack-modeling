@@ -3,14 +3,12 @@ from typing import List, Type
 from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload  # ← NEW!
+from sqlalchemy.orm import selectinload
 
 from ..scanner.crawler import Crawler
 from ..scanner.mapper import SiteMap
-from ..analyzers.base import BaseAnalyzer
-from ..analyzers.xss import XSSAnalyzer
-from ..analyzers.sqli import SQLiAnalyzer
-from ..analyzers.dto import AnalyzerResult
+from ..analyzers import BaseAnalyzer, AnalyzerResult, \
+    SQLiAnalyzer, XSSAnalyzer, CSRFAnalyzer, BruteforceAnalyzer, ConfigAnalyzer
 from models.scan import Scan, ScanStatusEnum
 from models.vulnerability import Vulnerability
 from utils.logging import app_logger
@@ -118,6 +116,9 @@ class ScanEngine:
         analyzers: List[Type[BaseAnalyzer]] = [
             XSSAnalyzer,
             SQLiAnalyzer,
+            CSRFAnalyzer,
+            BruteforceAnalyzer,
+            ConfigAnalyzer
         ]
         
         # Запускаем анализаторы параллельно
@@ -146,7 +147,8 @@ class ScanEngine:
                     description=vuln_dto.description,
                     type=vuln_dto.vuln_type,
                     severity=vuln_dto.severity,
-                    url_path=vuln_dto.url_path
+                    url_path=vuln_dto.url_path,
+                    cwe_id=vuln_dto.cwe_id
                 )
                 
                 self.db.add(vulnerability)

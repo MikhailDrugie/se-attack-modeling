@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Scan Report - {{ scan.target_url }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #1e40af;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .summary-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-card.critical {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .summary-card.high {
+            background: #fff7ed;
+            border-left: 4px solid #ea580c;
+        }
+        
+        .summary-card.medium {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .summary-card.low {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .summary-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .summary-card.critical .number { color: #dc2626; }
+        .summary-card.high .number { color: #ea580c; }
+        .summary-card.medium .number { color: #f59e0b; }
+        .summary-card.low .number { color: #22c55e; }
+        
+        .summary-card .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #1e40af;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .vulnerability {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .vulnerability-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        
+        .vulnerability-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .vulnerability-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge.critical { background: #fef2f2; color: #dc2626; }
+        .badge.high { background: #fff7ed; color: #ea580c; }
+        .badge.medium { background: #fffbeb; color: #f59e0b; }
+        .badge.low { background: #f0fdf4; color: #22c55e; }
+        
+        .badge.cwe {
+            background: #eff6ff;
+            color: #2563eb;
+            font-family: monospace;
+        }
+        
+        .vulnerability-content {
+            color: #475569;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        
+        .vulnerability-content h4 {
+            color: #1e293b;
+            margin: 16px 0 8px 0;
+            font-size: 14px;
+        }
+        
+        .vulnerability-content ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .vulnerability-content li {
+            margin-bottom: 4px;
+        }
+        
+        .vulnerability-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+        
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .meta-label {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .meta-value {
+            color: #1e293b;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            .vulnerability {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔒 Security Scan Report</h1>
+            <div class="subtitle">Vulnerability Assessment Report</div>
+        </div>
+        
+        <!-- Scan Info -->
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Target URL</div>
+                <div class="info-value">{{ scan.target_url }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Scan Date</div>
+                <div class="info-value">{{ scan.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Scan Status</div>
+                <div class="info-value">{{ scan_status }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Total Vulnerabilities</div>
+                <div class="info-value">{{ vulnerabilities|length }}</div>
+            </div>
+        </div>
+        
+        <!-- Executive Summary -->
+        <div class="section">
+            <h2 class="section-title">Executive Summary</h2>
+            <div class="summary">
+                <div class="summary-card critical">
+                    <div class="number">{{ severity_counts.get(4, 0) }}</div>
+                    <div class="label">Critical</div>
+                </div>
+                <div class="summary-card high">
+                    <div class="number">{{ severity_counts.get(3, 0) }}</div>
+                    <div class="label">High</div>
+                </div>
+                <div class="summary-card medium">
+                    <div class="number">{{ severity_counts.get(2, 0) }}</div>
+                    <div class="label">Medium</div>
+                </div>
+                <div class="summary-card low">
+                    <div class="number">{{ severity_counts.get(1, 0) }}</div>
+                    <div class="label">Low</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vulnerabilities -->
+        <div class="section">
+            <h2 class="section-title">Detected Vulnerabilities</h2>
+            
+            {% for vuln in vulnerabilities %}
+            <div class="vulnerability">
+                <div class="vulnerability-header">
+                    <div>
+                        <div class="vulnerability-title">{{ vuln.name }}</div>
+                        <div class="vulnerability-badges">
+                            <span class="badge {{ severity_map[vuln.severity] }}">
+                                {{ severity_map[vuln.severity]|upper }}
+                            </span>
+                            {% if vuln.cwe_id %}
+                            <span class="badge cwe">{{ vuln.cwe_id }}</span>
+                            {% endif %}
+                            <span class="badge" style="background: #f1f5f9; color: #475569;">
+                                {{ vuln_type_map.get(vuln.type, 'UNKNOWN') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vulnerability-content">
+                    {{ vuln.description|safe }}
+                </div>
+                
+                {% if vuln.evidence %}
+                <div class="code-block">{{ vuln.evidence }}</div>
+                {% endif %}
+                
+                <div class="vulnerability-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">URL Path</div>
+                        <div class="meta-value">{{ vuln.url_path }}</div>
+                    </div>
+                    {% if vuln.parameter %}
+                    <div class="meta-item">
+                        <div class="meta-label">Parameter</div>
+                        <div class="meta-value">{{ vuln.parameter }}</div>
+                    </div>
+                    {% endif %}
+                    {% if vuln.method %}
+                    <div class="meta-item">
+                        <div class="meta-label">Method</div>
+                        <div class="meta-value">{{ vuln.method }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>This report was generated automatically by Security Scanner</p>
+            <p>Report ID: {{ scan.id }} | Generated: {{ report_date }}</p>
+        </div>
+    </div>
+</body>
+</html>

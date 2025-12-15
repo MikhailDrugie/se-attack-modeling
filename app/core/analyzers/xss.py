@@ -127,5 +127,6 @@ class XSSAnalyzer(BaseAnalyzer):
             method=method,
             payload=successful_payload.payload,
             evidence=successful_payload.evidence or successful_payload.payload[:200],
-            all_payloads=[successful_payload]
+            all_payloads=[successful_payload],
+            cwe_id="CWE-79"
         )

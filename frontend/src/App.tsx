@@ -10,6 +10,7 @@ import { ScansPage } from './pages/ScansPage';
 import { ScanDetailsPage } from './pages/ScanDetailsPage';
 import { UsersPage } from './pages/UsersPage';
 import { UserRole } from './types';
+import { CWEPage } from './pages/CWEPage';
 
 const theme = createTheme({
   palette: {
@@ -59,6 +60,15 @@ function App() {
                   <ScanDetailsPage />
                 </ProtectedRoute>
               }
+            />
+
+            <Route 
+              path="/cwe" 
+              element={
+              <ProtectedRoute>
+                  <CWEPage />
+                </ProtectedRoute>
+            } 
             />
 
             {/* Только для ADMIN */}
