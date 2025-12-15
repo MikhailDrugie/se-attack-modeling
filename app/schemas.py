@@ -50,6 +50,7 @@ class VulnerabilitySchema(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    # description_html: Optional[str] = None
     severity: SeverityEnum
     url_path: str
     type: VulnerabilityTypesEnum

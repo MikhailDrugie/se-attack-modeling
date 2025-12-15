@@ -269,7 +269,9 @@ export const ScanDetailsPage: React.FC = () => {
                           )}
                         </TableCell>
                         <TableCell>{vuln.name}</TableCell>
-                        <TableCell>{vuln.description || '-'}</TableCell>
+                        <TableCell> {vuln.description ? (
+                          <div dangerouslySetInnerHTML={{ __html: vuln.description }} />
+                        ) : '-'}</TableCell>
                         <TableCell>
                           <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {vuln.url_path}

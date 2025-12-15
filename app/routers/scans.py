@@ -19,8 +19,8 @@ from models.vulnerability import Vulnerability
 from services.fake_scanner import run_fake_scan
 from services import ScannerService, SASTService
 from utils.logging import app_logger
-from core.reports.html_report import HTMLReportGenerator
-from core.reports.pdf_report import PDFReportGenerator
+from utils.markdown_helper import markdown_to_safe_html
+from core.reports import HTMLReportGenerator, PDFReportGenerator
 
 
 router = APIRouter(
@@ -105,6 +105,13 @@ async def get_scan_details(
     if not scan:
         app_logger.warning(f"[API] Scan #{scan_id} not found")
         raise HTTPException(status_code=404, detail=f"Scan with id {scan_id} not found")
+    
+    for vuln in scan.vulnerabilities:
+        vuln: Vulnerability
+        if not vuln.description:
+            continue
+        vuln.description = markdown_to_safe_html(vuln.description)
+    
     app_logger.info(
         f"[API] Retrieved scan #{scan_id} details "
         f"(status: {scan.status_enum.syslabel}, vulnerabilities: {len(scan.vulnerabilities)})"
@@ -185,7 +192,11 @@ async def get_scan_report_html(
     
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
-    
+    for vuln in scan.vulnerabilities:
+        vuln: Vulnerability
+        if not vuln.description:
+            continue
+        vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем отчёт
     generator = HTMLReportGenerator()
     html = generator.generate(scan, scan.vulnerabilities)
@@ -210,7 +221,11 @@ async def download_scan_report_html(
     
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
-    
+    for vuln in scan.vulnerabilities:
+        vuln: Vulnerability
+        if not vuln.description:
+            continue
+        vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем HTML
     generator = HTMLReportGenerator()
     html = generator.generate(scan, scan.vulnerabilities)
@@ -249,7 +264,11 @@ async def get_scan_report_pdf(
     
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
-    
+    for vuln in scan.vulnerabilities:
+        vuln: Vulnerability
+        if not vuln.description:
+            continue
+        vuln.description = markdown_to_safe_html(vuln.description)
     # Генерируем PDF
     generator = PDFReportGenerator()
     pdf_bytes = generator.generate(scan, scan.vulnerabilities)
